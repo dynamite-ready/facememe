@@ -1,6 +1,10 @@
-require("jquery");
-require("backbone");
+global.$ = require("jquery");
 
-var fuck = require("../../templates/basic.html");
+$(document).on("ready", function(){
+	global.Backbone = require("backbone");
+	global.Backbone.$ = $;
 
-console.log(fuck);
+	var basic = require("./view/basic.js");
+
+	var displayBasic = new basic();
+});
