@@ -1,0 +1,39 @@
+{
+	"name": "Raskie-Faceme",
+	"version": "0.1.0",
+	"description": "A working prototype for a fashion marketing application",
+	"main": "index.js",
+	"scripts": {
+		"start": "node node_modules/nodemon/bin/nodemon.js",
+		"test": "node node_modules/mocha/bin/mocha --ui exports",
+		"install": "browserify -t stringify ./website/assets/scripts/dev/main.js -o ./website/assets/scripts/build/main.js"
+	},
+	
+	"keywords": [
+		"Faces",
+		"Models",
+		"Fashion",
+		"Celebrity",
+		"AI"
+	],
+	
+	"author": "Leonard Charles",
+	"email": "l_r_charles@hotmail.com",
+	"license": "ISC",
+	
+	"dependencies" : {
+		"express": ">4.0.0",
+		"nodemon": ">1.0.0"
+	},
+	
+	"devDependencies" : {
+		"mocha": ">2.0.0",
+		"stringify": ">1.0.0",
+		"browserify": ">9.0.0",
+		"browserify-css": ">0.5.0",
+		"jquery": "*",
+		"backbone": "*",
+		"underscore": "*",
+		"mustache": "*"
+	}
+}
