@@ -12663,7 +12663,7 @@ module.exports = Backbone.View.extend({
 	//       to push content. Like the Hello World in this case.
 	render: function(){
 		var _self = this;
-		_self.$el.html("Hello World");
+		_self.$el.html("WALTER");
 	}
 });
 },{}]},{},[4]);

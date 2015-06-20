@@ -1,0 +1,10 @@
+{
+	"ignore": [
+		".git",
+		"./website/assets/scripts/build"
+	],
+	"verbose": true,
+	"events": {
+		"restart": "browserify -t stringify ./website/assets/scripts/dev/main.js -o ./website/assets/scripts/build/main.js"
+	}
+}
