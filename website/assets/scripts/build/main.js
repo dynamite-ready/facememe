@@ -1,4 +1,264 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+ * Backbone localStorage Adapter
+ * Version 1.1.16
+ *
+ * https://github.com/jeromegn/Backbone.localStorage
+ */
+(function (root, factory) {
+  if (typeof exports === 'object' && typeof require === 'function') {
+    module.exports = factory(require("backbone"));
+  } else if (typeof define === "function" && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(["backbone"], function(Backbone) {
+      // Use global variables if the locals are undefined.
+      return factory(Backbone || root.Backbone);
+    });
+  } else {
+    factory(Backbone);
+  }
+}(this, function(Backbone) {
+// A simple module to replace `Backbone.sync` with *localStorage*-based
+// persistence. Models are given GUIDS, and saved into a JSON object. Simple
+// as that.
+
+// Generate four random hex digits.
+function S4() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+};
+
+// Generate a pseudo-GUID by concatenating random hexadecimal.
+function guid() {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+};
+
+function isObject(item) {
+  return item === Object(item);
+}
+
+function contains(array, item) {
+  var i = array.length;
+  while (i--) if (array[i] === item) return true;
+  return false;
+}
+
+function extend(obj, props) {
+  for (var key in props) obj[key] = props[key]
+  return obj;
+}
+
+function result(object, property) {
+    if (object == null) return void 0;
+    var value = object[property];
+    return (typeof value === 'function') ? object[property]() : value;
+}
+
+// Our Store is represented by a single JS object in *localStorage*. Create it
+// with a meaningful name, like the name you'd give a table.
+// window.Store is deprectated, use Backbone.LocalStorage instead
+Backbone.LocalStorage = window.Store = function(name, serializer) {
+  if( !this.localStorage ) {
+    throw "Backbone.localStorage: Environment does not support localStorage."
+  }
+  this.name = name;
+  this.serializer = serializer || {
+    serialize: function(item) {
+      return isObject(item) ? JSON.stringify(item) : item;
+    },
+    // fix for "illegal access" error on Android when JSON.parse is passed null
+    deserialize: function (data) {
+      return data && JSON.parse(data);
+    }
+  };
+  var store = this.localStorage().getItem(this.name);
+  this.records = (store && store.split(",")) || [];
+};
+
+extend(Backbone.LocalStorage.prototype, {
+
+  // Save the current state of the **Store** to *localStorage*.
+  save: function() {
+    this.localStorage().setItem(this.name, this.records.join(","));
+  },
+
+  // Add a model, giving it a (hopefully)-unique GUID, if it doesn't already
+  // have an id of it's own.
+  create: function(model) {
+    if (!model.id && model.id !== 0) {
+      model.id = guid();
+      model.set(model.idAttribute, model.id);
+    }
+    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
+    this.records.push(model.id.toString());
+    this.save();
+    return this.find(model);
+  },
+
+  // Update a model by replacing its copy in `this.data`.
+  update: function(model) {
+    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
+    var modelId = model.id.toString();
+    if (!contains(this.records, modelId)) {
+      this.records.push(modelId);
+      this.save();
+    }
+    return this.find(model);
+  },
+
+  // Retrieve a model from `this.data` by id.
+  find: function(model) {
+    return this.serializer.deserialize(this.localStorage().getItem(this._itemName(model.id)));
+  },
+
+  // Return the array of all models currently in storage.
+  findAll: function() {
+    var result = [];
+    for (var i = 0, id, data; i < this.records.length; i++) {
+      id = this.records[i];
+      data = this.serializer.deserialize(this.localStorage().getItem(this._itemName(id)));
+      if (data != null) result.push(data);
+    }
+    return result;
+  },
+
+  // Delete a model from `this.data`, returning it.
+  destroy: function(model) {
+    this.localStorage().removeItem(this._itemName(model.id));
+    var modelId = model.id.toString();
+    for (var i = 0, id; i < this.records.length; i++) {
+      if (this.records[i] === modelId) {
+        this.records.splice(i, 1);
+      }
+    }
+    this.save();
+    return model;
+  },
+
+  localStorage: function() {
+    return localStorage;
+  },
+
+  // Clear localStorage for specific collection.
+  _clear: function() {
+    var local = this.localStorage(),
+      itemRe = new RegExp("^" + this.name + "-");
+
+    // Remove id-tracking item (e.g., "foo").
+    local.removeItem(this.name);
+
+    // Match all data items (e.g., "foo-ID") and remove.
+    for (var k in local) {
+      if (itemRe.test(k)) {
+        local.removeItem(k);
+      }
+    }
+
+    this.records.length = 0;
+  },
+
+  // Size of localStorage.
+  _storageSize: function() {
+    return this.localStorage().length;
+  },
+
+  _itemName: function(id) {
+    return this.name+"-"+id;
+  }
+
+});
+
+// localSync delegate to the model or collection's
+// *localStorage* property, which should be an instance of `Store`.
+// window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead
+Backbone.LocalStorage.sync = window.Store.sync = Backbone.localSync = function(method, model, options) {
+  var store = result(model, 'localStorage') || result(model.collection, 'localStorage');
+
+  var resp, errorMessage;
+  //If $ is having Deferred - use it.
+  var syncDfd = Backbone.$ ?
+    (Backbone.$.Deferred && Backbone.$.Deferred()) :
+    (Backbone.Deferred && Backbone.Deferred());
+
+  try {
+
+    switch (method) {
+      case "read":
+        resp = model.id != undefined ? store.find(model) : store.findAll();
+        break;
+      case "create":
+        resp = store.create(model);
+        break;
+      case "update":
+        resp = store.update(model);
+        break;
+      case "delete":
+        resp = store.destroy(model);
+        break;
+    }
+
+  } catch(error) {
+    if (error.code === 22 && store._storageSize() === 0)
+      errorMessage = "Private browsing is unsupported";
+    else
+      errorMessage = error.message;
+  }
+
+  if (resp) {
+    if (options && options.success) {
+      if (Backbone.VERSION === "0.9.10") {
+        options.success(model, resp, options);
+      } else {
+        options.success(resp);
+      }
+    }
+    if (syncDfd) {
+      syncDfd.resolve(resp);
+    }
+
+  } else {
+    errorMessage = errorMessage ? errorMessage
+                                : "Record Not Found";
+
+    if (options && options.error)
+      if (Backbone.VERSION === "0.9.10") {
+        options.error(model, errorMessage, options);
+      } else {
+        options.error(errorMessage);
+      }
+
+    if (syncDfd)
+      syncDfd.reject(errorMessage);
+  }
+
+  // add compatibility with $.ajax
+  // always execute callback for success and error
+  if (options && options.complete) options.complete(resp);
+
+  return syncDfd && syncDfd.promise();
+};
+
+Backbone.ajaxSync = Backbone.sync;
+
+Backbone.getSyncMethod = function(model, options) {
+  var forceAjaxSync = options && options.ajaxSync;
+
+  if(!forceAjaxSync && (result(model, 'localStorage') || result(model.collection, 'localStorage'))) {
+    return Backbone.localSync;
+  }
+
+  return Backbone.ajaxSync;
+};
+
+// Override 'Backbone.sync' to default to localSync,
+// the original 'Backbone.sync' is still available in 'Backbone.ajaxSync'
+Backbone.sync = function(method, model, options) {
+  return Backbone.getSyncMethod(model, options).apply(this, [method, model, options]);
+};
+
+return Backbone.LocalStorage;
+}));
+
+},{"backbone":2}],2:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.2.1
 
@@ -1875,7 +2135,7 @@
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":3,"underscore":2}],2:[function(require,module,exports){
+},{"jquery":4,"underscore":3}],3:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3425,7 +3685,7 @@
   }
 }.call(this));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -12637,24 +12897,118 @@ return jQuery;
 
 }));
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"dup":3}],6:[function(require,module,exports){
+var ProfileModel = require("../model/catwalk-model-profile.js");
+
+module.exports = Backbone.Collection.extend({
+	model: ProfileModel,
+	localStorage: new Backbone.LocalStorage("profile-models")
+});
+},{"../model/catwalk-model-profile.js":9}],7:[function(require,module,exports){
+module.exports = [
+	{
+		"id": 1,
+		"firstname": "Jessica",
+		"surname": "Burley",
+		"sex": "female",
+		"photo-url": "/images/models/female/jessica-burley.jpg"
+	},
+	{
+		"id": 2,
+		"firstname": "Kai",
+		"surname": "Newman",
+		"sex": "female",
+		"photo-url": "/images/models/female/kai-newman.jpg"
+	},
+	{
+		"id": 3,
+		"firstname": "Kate",
+		"surname": "Moss",
+		"sex": "female",
+		"photo-url": "/images/models/female/kate-moss.jpg"
+	},
+	{
+		"id": 4,
+		"firstname": "Lana",
+		"surname": "Godnia",
+		"sex": "female",
+		"photo-url": "/images/models/female/lana-godnia.jpg"
+	},
+	{
+		"id": 5,
+		"firstname": "Laura",
+		"surname": "Julie",
+		"sex": "female",
+		"photo-url": "/images/models/female/laura-julie.jpg"
+	}	
+];
+},{}],8:[function(require,module,exports){
 (function (global){
+// Infrastructure... Where I can, I try to source NPM versions of key libraries.
+// I attach these to the CommonJS 'global' object, to avoid the need for per module includes/requires.
 global.$ = require("jquery");
+global._ = require("underscore");
 global.Backbone = require("backbone");
+global.Backbone.LocalStorage = require("backbone.localstorage");
 global.Backbone.$ = $;
 
-
-$(document).on("ready", function(){
+// App initialisation. If something is broken, start here.
+function main(){
+	// App specific.
 	var Router = require("./router/index.js");
 	var Basic = require("./view/basic.js");
-
+	var ModelProfiles = require("./collection/catwalk-model-profiles.js");
+	
+	// Initialise router.
 	var router = new Router();
 	Backbone.history.start();	
 	
-	var displayBasic = new Basic();
-});
+	// Initialise the Catwalk Model Profile collection.
+	var modelProfiles = new ModelProfiles();
+	
+	// Mock data... Would ideally like to put this in a database.
+	var data = require("./data/catwalk-model-profile-data.js");
+	 
+	_.each(data, function(item){
+		console.log(
+			"BADGER",
+			modelProfiles.findWhere({
+				firstname: item.firstname,
+				surname: item.surname
+			})			
+		)
+		
+		if(
+			!modelProfiles.findWhere({
+				firstname: item.firstname,
+				surname: item.surname
+			})
+		){	
+			modelProfiles.create(item);
+		}
+	});
+
+	// Initial view.
+	var displayBasic = new Basic({collection: modelProfiles});	
+}
+
+// Initialise on document ready.
+$(document).on("ready", main);
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./router/index.js":5,"./view/basic.js":6,"backbone":1,"jquery":3}],5:[function(require,module,exports){
+},{"./collection/catwalk-model-profiles.js":6,"./data/catwalk-model-profile-data.js":7,"./router/index.js":10,"./view/basic.js":11,"backbone":2,"backbone.localstorage":1,"jquery":4,"underscore":5}],9:[function(require,module,exports){
+module.exports = Backbone.Model.extend({
+	defaults: {
+		"firstname": "",
+		"surname": "",
+		"sex": "",
+		"photo-url": "",
+		"biometry": {}
+	}
+});
+},{}],10:[function(require,module,exports){
 module.exports = Backbone.Router.extend({
 	routes: {
 		"wodge" : "wodge",
@@ -12670,10 +13024,10 @@ module.exports = Backbone.Router.extend({
 	}
 });
 
-},{}],6:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = Backbone.View.extend({
-	// el - stands for element. Every view has a element associate in with HTML
-	//      content will be rendered.
+	// Expect:
+	// this.modelProfiles.
 	el: '#container',
 	// It's the first function called when this view it's instantiated.
 	initialize: function(){
@@ -12684,6 +13038,7 @@ module.exports = Backbone.View.extend({
 	render: function(){
 		var _self = this;
 		_self.$el.html("WALTER");
+		console.log("CUNT", JSON.stringify(this.collection));
 	}
 });
-},{}]},{},[4]);
+},{}]},{},[8]);

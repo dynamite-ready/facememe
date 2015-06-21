@@ -1,6 +1,6 @@
 module.exports = Backbone.View.extend({
-	// el - stands for element. Every view has a element associate in with HTML
-	//      content will be rendered.
+	// Expect:
+	// this.modelProfiles.
 	el: '#container',
 	// It's the first function called when this view it's instantiated.
 	initialize: function(){
@@ -11,5 +11,6 @@ module.exports = Backbone.View.extend({
 	render: function(){
 		var _self = this;
 		_self.$el.html("WALTER");
+		console.log("CUNT", JSON.stringify(this.collection));
 	}
 });
