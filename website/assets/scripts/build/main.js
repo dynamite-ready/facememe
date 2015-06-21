@@ -12640,17 +12640,37 @@ return jQuery;
 },{}],4:[function(require,module,exports){
 (function (global){
 global.$ = require("jquery");
+global.Backbone = require("backbone");
+global.Backbone.$ = $;
+
 
 $(document).on("ready", function(){
-	global.Backbone = require("backbone");
-	global.Backbone.$ = $;
+	var Router = require("./router/index.js");
+	var Basic = require("./view/basic.js");
 
-	var basic = require("./view/basic.js");
-
-	var displayBasic = new basic();
+	var router = new Router();
+	Backbone.history.start();	
+	
+	var displayBasic = new Basic();
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./view/basic.js":5,"backbone":1,"jquery":3}],5:[function(require,module,exports){
+},{"./router/index.js":5,"./view/basic.js":6,"backbone":1,"jquery":3}],5:[function(require,module,exports){
+module.exports = Backbone.Router.extend({
+	routes: {
+		"wodge" : "wodge",
+		"badger" : "badger"
+	},
+	
+	badger: function(params) {
+		console.log("BADGER", params);
+	},
+	
+	wodge: function(params){
+		console.log("WODGE", params);
+	}
+});
+
+},{}],6:[function(require,module,exports){
 module.exports = Backbone.View.extend({
 	// el - stands for element. Every view has a element associate in with HTML
 	//      content will be rendered.
