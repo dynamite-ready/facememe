@@ -13641,7 +13641,6 @@ module.exports = Backbone.View.extend({
 	render: function(){
 		this.$el.empty();
 		var models = this.collection;
-		console.log(models);
 		this.$el.append(
 			$(
 				Mustache.render(
@@ -13653,6 +13652,6 @@ module.exports = Backbone.View.extend({
 	}
 });
 },{"../../../templates/basic.html":13}],13:[function(require,module,exports){
-module.exports = "<div id=\"models\">\r\n\t{{#models}}\r\n\t<div class=\"model\">\r\n\t\t<div class=\"image\">\r\n\t\t\t{{&firstname}}\r\n\t\t\t<img src=\"{{&image}}\"></img>\r\n\t\t</div>\r\n\t</div>\r\n\t{{/models}}\r\n</div>";
+module.exports = "<div id=\"models\">\r\n\t{{#models}}\r\n\t<div class=\"model\">\r\n\t\t<img class=\"image\" src=\"{{&image}}\"></img>\r\n\t\t<div class=\"name\">{{&firstname}} {{&surname}}</div>\r\n\t</div>\r\n\t{{/models}}\r\n</div>";
 
 },{}]},{},[9]);

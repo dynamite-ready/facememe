@@ -1,10 +1,8 @@
 <div id="models">
 	{{#models}}
 	<div class="model">
-		<div class="image">
-			{{&firstname}}
-			<img src="{{&image}}"></img>
-		</div>
+		<img class="image" src="{{&image}}"></img>
+		<div class="name">{{&firstname}} {{&surname}}</div>
 	</div>
 	{{/models}}
 </div>

@@ -1,0 +1,13 @@
+body {
+	text-align: center;
+} 
+
+#models .image {
+	position: relative;
+	width: 320px;
+	height: 400px;
+}
+
+#models .model {
+	margin-bottom: 20px;
+}

@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node node_modules/nodemon/bin/nodemon.js",
-		"test": "node node_modules/mocha/bin/mocha --ui exports",
+		"test": "node node_modules/mocha/bin/mocha --timeout 5000 --harmony --ui exports",
 		"install": "browserify -t stringify ./website/assets/scripts/dev/main.js -o ./website/assets/scripts/build/main.js"
 	},
 	
@@ -22,11 +22,11 @@
 	"license": "ISC",
 	
 	"dependencies" : {
-		"express": ">4.0.0",
-		"nodemon": ">1.0.0"
+		"express": ">4.0.0"
 	},
 	
 	"devDependencies" : {
+		"nodemon": ">1.0.0",
 		"mocha": ">2.0.0",
 		"stringify": ">1.0.0",
 		"browserify": ">9.0.0",
@@ -35,6 +35,7 @@
 		"backbone": "*",
 		"backbone.localstorage": "*",
 		"underscore": "*",
-		"mustache": "*"
+		"mustache": "*",
+		"zombie": "4.0.10"
 	}
 }

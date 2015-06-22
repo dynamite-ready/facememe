@@ -13,7 +13,6 @@ module.exports = Backbone.View.extend({
 	render: function(){
 		this.$el.empty();
 		var models = this.collection;
-		console.log(models);
 		this.$el.append(
 			$(
 				Mustache.render(
