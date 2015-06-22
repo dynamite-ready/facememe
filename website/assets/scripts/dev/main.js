@@ -1,7 +1,8 @@
-// Infrastructure... Where I can, I try to source NPM versions of key libraries.
-// I attach these to the CommonJS 'global' object, to avoid the need for per module includes/requires.
+// Infrastructure... Where I can, I try to source NPM versions of key libraries. As a result, the source can be found in the node modules folder.
+// I attach these libraries to the CommonJS 'global' object, to avoid the need for per module includes/requires.
 global.$ = require("jquery");
 global._ = require("underscore");
+global.Mustache = require("mustache");
 global.Backbone = require("backbone");
 global.Backbone.LocalStorage = require("backbone.localstorage");
 global.Backbone.$ = $;
@@ -24,22 +25,7 @@ function main(){
 	var data = require("./data/catwalk-model-profile-data.js");
 	 
 	_.each(data, function(item){
-		console.log(
-			"BADGER",
-			modelProfiles.findWhere({
-				firstname: item.firstname,
-				surname: item.surname
-			})			
-		)
-		
-		if(
-			!modelProfiles.findWhere({
-				firstname: item.firstname,
-				surname: item.surname
-			})
-		){	
-			modelProfiles.create(item);
-		}
+		modelProfiles.create(item);
 	});
 
 	// Initial view.

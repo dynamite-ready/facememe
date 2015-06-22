@@ -1,3 +1,5 @@
+var DisplayModelTemplate = require("../../../templates/basic.html");
+
 module.exports = Backbone.View.extend({
 	// Expect:
 	// this.modelProfiles.
@@ -9,8 +11,16 @@ module.exports = Backbone.View.extend({
 	// $el - it's a cached jQuery object (el), in which you can use jQuery functions
 	//       to push content. Like the Hello World in this case.
 	render: function(){
-		var _self = this;
-		_self.$el.html("WALTER");
-		console.log("CUNT", JSON.stringify(this.collection));
+		this.$el.empty();
+		var models = this.collection;
+		console.log(models);
+		this.$el.append(
+			$(
+				Mustache.render(
+					DisplayModelTemplate, 
+					{models: models.toJSON()}
+				)
+			)
+		);
 	}
 });

@@ -1,5 +1,10 @@
 <div id="models">
+	{{#models}}
 	<div class="model">
-		<div class="image"></div>
+		<div class="image">
+			{{&firstname}}
+			<img src="{{&image}}"></img>
+		</div>
 	</div>
+	{{/models}}
 </div>

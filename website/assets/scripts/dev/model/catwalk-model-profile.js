@@ -3,7 +3,7 @@ module.exports = Backbone.Model.extend({
 		"firstname": "",
 		"surname": "",
 		"sex": "",
-		"photo-url": "",
+		"image": "",
 		"biometry": {}
 	}
 });
