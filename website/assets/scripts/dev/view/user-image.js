@@ -1,11 +1,11 @@
-var DisplayModelTemplate = require("../../../templates/user-image.html");
 var filebutton = require("file-button");
+var DisplayModelTemplate = require("../../../templates/user-image.html");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
 	
     events: {
-		"click .snapshot": "takeCameraSnapshot"
+		"click .snapshot": "takeCameraSnapshot",
     },	
 	
 	initialize: function(){
@@ -19,20 +19,18 @@ module.exports = Backbone.View.extend({
 		this.setupFileUploadButton();
 		this.setupCameraCapture();
 		
-		this.$el.find("#loading").hide();
+		this.$el.find(".button.snapshot").addClass("hide");
+		this.$el.find("#loading").fadeOut();
+		
+		document.documentElement.requestFullscreen();
 	},
 	
 	setupFileUploadButton: function(){
+		var _self = this;
 		filebutton.
 			create(). // create the instance
 			on("fileinput", function(value){
-				console.log(value.files, "BASTARD");
-				var filereader = new FileReader();
-				filereader.readAsDataURL(value.files[0]);
-				filereader.onload = function(filereaderEvent){
-					this.$el.find("#upload-preview").attr("src", filereaderEvent.target.result);
-					detectFace(String(filereaderEvent.target.result));
-				}
+				_self.uploadImage(_self, value);
 			}).
 			mount($(".upload")[0]); // mount the view on the button
 	},
@@ -50,24 +48,48 @@ module.exports = Backbone.View.extend({
 		});
 	 
 		rtc2images.startVideo(function(err){
-			if(err){ 
-				console.log(err); 
-				_self.$el.find("#video-preview, #actions .snapshot").hide();
-			} else _self.$el.find("#upload-preview").hide();
+			if(err){  
+				_self.$el.find("#video-preview, #actions .snapshot").addClass("hide");
+			} else {
+				_self.$el.find("#actions .snapshot").removeClass("hide");
+				_self.$el.find("#upload-preview").addClass("hide");
+			}
 		});
 		
 		this.rtc2images = rtc2images;
 	},
 	
 	takeCameraSnapshot: function(e){
+		var _self = this;
 		e.preventDefault();
-		
 		this.rtc2images.recordVideo(function(err, frames){
 			if(err){ 
 				console.log(err);
 			} else {
 				console.log(frames);
+				_self.displayFinalImage(frames[0]);
 			}
 		});
-	}		
+	},
+
+	uploadImage: function(_self, value){
+		var filereader = new FileReader();
+		filereader.readAsDataURL(value.files[0]);
+		filereader.onload = function(filereaderEvent){
+			_self.displayFinalImage(filereaderEvent.target.result);
+		}
+	},
+	
+	displayFinalImage: function(image){
+		var _self = this;
+		
+		// Image should be a base64 encode image.
+		this.$el.find("#video-preview, #actions .button").addClass("hide");
+		this.$el.find("#upload-preview").removeClass("hide");
+		this.$el.find("#upload-preview").attr("src", image);
+		
+		window.setTimeout(function(){
+			_self.$el.find("#loading").fadeIn();
+		}, 3000);
+	}
 });

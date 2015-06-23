@@ -14560,8 +14560,13 @@ module.exports = Backbone.Model.extend({
 },{"../utils":27}],26:[function(require,module,exports){
 module.exports = Backbone.Router.extend({
 	routes: {
+		"": "default",
 		"wodge" : "wodge",
 		"badger" : "badger"
+	},
+	
+	default: function(){
+		alert("ARGH!");
 	},
 	
 	badger: function(params) {
@@ -14653,14 +14658,14 @@ module.exports = Backbone.View.extend({
 	}
 });
 },{"../../../templates/model-list.html":30}],29:[function(require,module,exports){
-var DisplayModelTemplate = require("../../../templates/user-image.html");
 var filebutton = require("file-button");
+var DisplayModelTemplate = require("../../../templates/user-image.html");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
 	
     events: {
-		"click .snapshot": "takeCameraSnapshot"
+		"click .snapshot": "takeCameraSnapshot",
     },	
 	
 	initialize: function(){
@@ -14674,20 +14679,18 @@ module.exports = Backbone.View.extend({
 		this.setupFileUploadButton();
 		this.setupCameraCapture();
 		
-		this.$el.find("#loading").hide();
+		this.$el.find(".button.snapshot").addClass("hide");
+		this.$el.find("#loading").fadeOut();
+		
+		document.documentElement.requestFullscreen();
 	},
 	
 	setupFileUploadButton: function(){
+		var _self = this;
 		filebutton.
 			create(). // create the instance
 			on("fileinput", function(value){
-				console.log(value.files, "BASTARD");
-				var filereader = new FileReader();
-				filereader.readAsDataURL(value.files[0]);
-				filereader.onload = function(filereaderEvent){
-					this.$el.find("#upload-preview").attr("src", filereaderEvent.target.result);
-					detectFace(String(filereaderEvent.target.result));
-				}
+				_self.uploadImage(_self, value);
 			}).
 			mount($(".upload")[0]); // mount the view on the button
 	},
@@ -14705,31 +14708,55 @@ module.exports = Backbone.View.extend({
 		});
 	 
 		rtc2images.startVideo(function(err){
-			if(err){ 
-				console.log(err); 
-				_self.$el.find("#video-preview, #actions .snapshot").hide();
-			} else _self.$el.find("#upload-preview").hide();
+			if(err){  
+				_self.$el.find("#video-preview, #actions .snapshot").addClass("hide");
+			} else {
+				_self.$el.find("#actions .snapshot").removeClass("hide");
+				_self.$el.find("#upload-preview").addClass("hide");
+			}
 		});
 		
 		this.rtc2images = rtc2images;
 	},
 	
 	takeCameraSnapshot: function(e){
+		var _self = this;
 		e.preventDefault();
-		
 		this.rtc2images.recordVideo(function(err, frames){
 			if(err){ 
 				console.log(err);
 			} else {
 				console.log(frames);
+				_self.displayFinalImage(frames[0]);
 			}
 		});
-	}		
+	},
+
+	uploadImage: function(_self, value){
+		var filereader = new FileReader();
+		filereader.readAsDataURL(value.files[0]);
+		filereader.onload = function(filereaderEvent){
+			_self.displayFinalImage(filereaderEvent.target.result);
+		}
+	},
+	
+	displayFinalImage: function(image){
+		var _self = this;
+		
+		// Image should be a base64 encode image.
+		this.$el.find("#video-preview, #actions .button").addClass("hide");
+		this.$el.find("#upload-preview").removeClass("hide");
+		this.$el.find("#upload-preview").attr("src", image);
+		
+		window.setTimeout(function(){
+			_self.$el.find("#loading").fadeIn();
+		}, 3000);
+	}
 });
 },{"../../../templates/user-image.html":31,"file-button":4,"webrtc2images":12}],30:[function(require,module,exports){
 module.exports = "<div id=\"models\">\r\n\t{{#models}}\r\n\t<div class=\"model\" id=\"{{&id}}\">\r\n\t\t<img class=\"image\" src=\"{{&image}}\"></img>\r\n\t\t<div class=\"name\">{{&firstname}} {{&surname}}</div>\r\n\t</div>\r\n\t{{/models}}\r\n</div>";
 
 },{}],31:[function(require,module,exports){
-module.exports = "<div id=\"user-image\">\r\n\t<div id=\"user-image-frame\">\r\n\t\t<div id=\"video-preview\"></div>\r\n\t\t<img id=\"upload-preview\"></img>\r\n\t</div>\r\n\t<div id=\"actions\">\r\n\t\t<span class=\"snapshot\">snapshot</span>\r\n\t\t&nbsp;\r\n\t\t<span id=\"button\" class=\"upload\">upload</span>\r\n\t</div>\r\n</div>";
+module.exports = "<div id=\"user-image\">\r\n\t<div id=\"user-image-frame\">\r\n\t\t<div id=\"video-preview\"></div>\r\n\t\t<img id=\"upload-preview\" src=\"https://placeholdit.imgix.net/~text?txtsize=34&txt=320%C3%97400&w=320&h=400\"></img>\r\n\t</div>\r\n\t<div id=\"actions\">\r\n\t\t<span class=\"snapshot button\"><span>snapshot</span></span>\r\n\t\t&nbsp;\r\n\t\t<span id=\"button\" class=\"upload button\"><span>upload</span></span>\r\n\t</div>\r\n</div>";
 
 },{}]},{},[24]);
