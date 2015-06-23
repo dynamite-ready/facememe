@@ -11,3 +11,18 @@ body {
 #models .model {
 	margin-bottom: 20px;
 }
+
+#button {
+	position: relative;
+	width: 200px;
+	height: 20px;
+	background: red;
+}
+
+#button input {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	transform: scale(1) !important;
+	transform-origin: 0px !important;
+}
