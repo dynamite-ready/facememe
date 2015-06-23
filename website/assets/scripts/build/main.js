@@ -14433,35 +14433,35 @@ module.exports = Backbone.Collection.extend({
 },{"../model/catwalk-model-profile.js":25}],23:[function(require,module,exports){
 module.exports = [
 	{
-		"id": 1,
+		"id": "jessica-burley",
 		"firstname": "Jessica",
 		"surname": "Burley",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/jessica-burley.jpg"
 	},
 	{
-		"id": 2,
+		"id": "kai-newman",
 		"firstname": "Kai",
 		"surname": "Newman",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/kai-newman.jpg"
 	},
 	{
-		"id": 3,
+		"id": "kate-moss",
 		"firstname": "Kate",
 		"surname": "Moss",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/kate-moss.jpg"
 	},
 	{
-		"id": 4,
+		"id": "lana-godnia",
 		"firstname": "Lana",
 		"surname": "Godnia",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/lana-godnia.jpg"
 	},
 	{
-		"id": 5,
+		"id": "laura-julie",
 		"firstname": "Laura",
 		"surname": "Julie",
 		"sex": "female",
@@ -14484,6 +14484,7 @@ function main(){
 	// App specific.
 	var Router = require("./router/index.js");
 	var ModelList = require("./view/model-list.js");
+	var UserImage = require("./view/user-image.js");
 	var ModelProfiles = require("./collection/catwalk-model-profiles.js");
 	
 	// Mock data... Would ideally like to put this in a database.
@@ -14515,95 +14516,48 @@ function main(){
 	}
 
 	function displayHomepage(){
-		// Initial view.
+		// Homepage components.
 		var displayModelList = new ModelList({collection: modelProfiles});
+		var displayUserImage = new UserImage({collection: modelProfiles});
 		
-		var Webrtc2images = require('webrtc2images');
-		var rtc2images = new Webrtc2images({
-			width: 320,
-			height: 400,
-			frames: 1,
-			type: "image/jpeg",
-			quality: 0.6,
-			interval: 200
-		});
-	 
-		rtc2images.startVideo(function(err){
-			if(err){
-				console.log(err);
-			}
-			
-			alert();
-		});
-
-		$(".snapshot").on("click", function(e){
-			e.preventDefault();
-			rtc2images.recordVideo(function(err, frames){
-				if (err) {
-				  console.log(err);
-				} else {
-				  console.log(frames);
-				  detectFace(String(frames[0]));
-				}
-			});
-		});
-
-		var filebutton = require('file-button');
-		 
-		filebutton.
-			create(). // create the instance
-			on("fileinput", function(value){
-				console.log(value.files, "BASTARD");
-				var filereader = new FileReader();
-				filereader.readAsDataURL(value.files[0]);
-				filereader.onload = function(filereaderEvent){
-					$("#upload-preview").attr("src", filereaderEvent.target.result);
-					detectFace(String(filereaderEvent.target.result));
-				}
-			}).
-			mount($(".upload")[0]); // mount the view on the button
+		var detectFace = require("./utils").detectFace;
 	}
 	
-	function detectFace(imageData, callback){
-		$.ajax(
-			"https://api.kairos.com/detect", 
-			{
-				method: "post",
-				contentType: "application/json",
-				dataType: "raw",							
-				// crossDomain: true,
-				beforeSend: function(request){
-					request.setRequestHeader("app_id", "c988513e");
-					request.setRequestHeader("app_key", "075693bfbb5e271fa9a0e7df489ff947");
-				},						
-				data: JSON.stringify({ 
-					"image": imageData.replace("data:image/jpeg;base64,", ""), 
-					"selector": "FULL"
-				}),
-				success: function(data){
-					console.log(data);
-					if(callback) callback(data);
-				}
-			}
-		);		
-	}
+
 }
 
 	// Initialise on document ready.
 $(document).on("ready", main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./collection/catwalk-model-profiles.js":22,"./data/catwalk-model-profile-data.js":23,"./router/index.js":26,"./view/model-list.js":27,"backbone":2,"backbone.localstorage":1,"file-button":4,"jquery":9,"mustache":10,"underscore":11,"webrtc2images":12}],25:[function(require,module,exports){
+},{"./collection/catwalk-model-profiles.js":22,"./data/catwalk-model-profile-data.js":23,"./router/index.js":26,"./utils":27,"./view/model-list.js":28,"./view/user-image.js":29,"backbone":2,"backbone.localstorage":1,"jquery":9,"mustache":10,"underscore":11}],25:[function(require,module,exports){
+var enrollFace = require("../utils").enrollFace;
+
 module.exports = Backbone.Model.extend({
+	url: "https://api.kairos.com/enroll",
+	
 	defaults: {
-		"firstname": "",
-		"surname": "",
-		"sex": "",
-		"image": "",
-		"biometry": {}
+		"id": null,	
+		"firstname": null,
+		"surname": null,
+		"sex": null,
+		"image": null,
+		"enrolled": null // Is this model (hoho!) registered on the server?...
+	},
+	
+	initialize: function(){
+		if(!this.get("enrolled")){
+			var _self = this;
+			enrollFace(this.get("image"), this.get("id"), function(data){
+				// To ensure that we don't push the image to the server for registration again.
+				// Unfortunately, there's a bug in Backbone.localStorage on all browsers but Chrome.
+				_self.set("enrolled", data.responseText);
+				_self.save();
+			});
+		}
 	}
 });
-},{}],26:[function(require,module,exports){
+},{"../utils":27}],26:[function(require,module,exports){
 module.exports = Backbone.Router.extend({
 	routes: {
 		"wodge" : "wodge",
@@ -14620,6 +14574,59 @@ module.exports = Backbone.Router.extend({
 });
 
 },{}],27:[function(require,module,exports){
+var kairosXhrOptions = {
+	method: "post",
+	contentType: "application/json",
+	dataType: "raw",							
+	beforeSend: function(request){
+		request.setRequestHeader("app_id", "c988513e");
+		request.setRequestHeader("app_key", "075693bfbb5e271fa9a0e7df489ff947");
+	}
+};	
+
+module.exports = {
+	detectFace: function(imageData, callback){
+		var requestOptions = $.extend(kairosXhrOptions, {
+			data: JSON.stringify({ 
+				"image": imageData.replace("data:image/jpeg;base64,", ""), 
+				"selector": "SETPOSE"
+			}),
+			complete: function(data){ if(callback) callback(data); }							
+		});
+		
+		$.ajax("https://api.kairos.com/detect", requestOptions);		
+	},
+	
+	enrollFace: function(imageData, imageId, callback){
+		var requestOptions = $.extend(kairosXhrOptions, {
+			data: JSON.stringify({ 
+				"image": imageData, // Will be a standard image url. 
+				"subject_id": imageId, 
+				"gallery_name": "supermodels",
+				"multiple_faces": false,
+				"selector": "SETPOSE"
+			}),						
+			complete: function(data){ if(callback) callback(data); }				
+		});
+		
+		$.ajax("https://api.kairos.com/enroll", requestOptions);		
+	},
+	
+	recognizeFaces: function(imageData, callback){
+		var requestOptions = $.extend(kairosXhrOptions, {
+			data: JSON.stringify({ 
+				"image": imageData.replace("data:image/jpeg;base64,", ""), 
+				"gallery_name": "supermodels",
+				"selector": "SETPOSE",
+				"threshold": 0.6
+			}),
+			complete: function(data){ if(callback) callback(data); }	
+		});
+		
+		$.ajax("https://api.kairos.com/recognize", requestOptions);
+	}
+}
+},{}],28:[function(require,module,exports){
 var DisplayModelTemplate = require("../../../templates/model-list.html");
 
 module.exports = Backbone.View.extend({
@@ -14633,7 +14640,7 @@ module.exports = Backbone.View.extend({
 	// $el - it's a cached jQuery object (el), in which you can use jQuery functions
 	//       to push content. Like the Hello World in this case.
 	render: function(){
-		this.$el.empty();
+		//this.$el.empty();
 		var models = this.collection;
 		this.$el.append(
 			$(
@@ -14645,7 +14652,84 @@ module.exports = Backbone.View.extend({
 		);
 	}
 });
-},{"../../../templates/model-list.html":28}],28:[function(require,module,exports){
+},{"../../../templates/model-list.html":30}],29:[function(require,module,exports){
+var DisplayModelTemplate = require("../../../templates/user-image.html");
+var filebutton = require("file-button");
+
+module.exports = Backbone.View.extend({
+	el: "#container",
+	
+    events: {
+		"click .snapshot": "takeCameraSnapshot"
+    },	
+	
+	initialize: function(){
+		this.render();
+	},
+
+	render: function(){
+		var models = this.collection;
+		
+		this.$el.prepend($(DisplayModelTemplate));
+		this.setupFileUploadButton();
+		this.setupCameraCapture();
+		
+		this.$el.find("#loading").hide();
+	},
+	
+	setupFileUploadButton: function(){
+		filebutton.
+			create(). // create the instance
+			on("fileinput", function(value){
+				console.log(value.files, "BASTARD");
+				var filereader = new FileReader();
+				filereader.readAsDataURL(value.files[0]);
+				filereader.onload = function(filereaderEvent){
+					this.$el.find("#upload-preview").attr("src", filereaderEvent.target.result);
+					detectFace(String(filereaderEvent.target.result));
+				}
+			}).
+			mount($(".upload")[0]); // mount the view on the button
+	},
+	
+	setupCameraCapture: function(){
+		var _self = this;
+		var Webrtc2images = require("webrtc2images");
+		var rtc2images = new Webrtc2images({
+			width: 320,
+			height: 400,
+			frames: 1,
+			type: "image/jpeg",
+			quality: 0.6,
+			interval: 200
+		});
+	 
+		rtc2images.startVideo(function(err){
+			if(err){ 
+				console.log(err); 
+				_self.$el.find("#video-preview, #actions .snapshot").hide();
+			} else _self.$el.find("#upload-preview").hide();
+		});
+		
+		this.rtc2images = rtc2images;
+	},
+	
+	takeCameraSnapshot: function(e){
+		e.preventDefault();
+		
+		this.rtc2images.recordVideo(function(err, frames){
+			if(err){ 
+				console.log(err);
+			} else {
+				console.log(frames);
+			}
+		});
+	}		
+});
+},{"../../../templates/user-image.html":31,"file-button":4,"webrtc2images":12}],30:[function(require,module,exports){
 module.exports = "<div id=\"models\">\r\n\t{{#models}}\r\n\t<div class=\"model\" id=\"{{&id}}\">\r\n\t\t<img class=\"image\" src=\"{{&image}}\"></img>\r\n\t\t<div class=\"name\">{{&firstname}} {{&surname}}</div>\r\n\t</div>\r\n\t{{/models}}\r\n</div>";
+
+},{}],31:[function(require,module,exports){
+module.exports = "<div id=\"user-image\">\r\n\t<div id=\"user-image-frame\">\r\n\t\t<div id=\"video-preview\"></div>\r\n\t\t<img id=\"upload-preview\"></img>\r\n\t</div>\r\n\t<div id=\"actions\">\r\n\t\t<span class=\"snapshot\">snapshot</span>\r\n\t\t&nbsp;\r\n\t\t<span id=\"button\" class=\"upload\">upload</span>\r\n\t</div>\r\n</div>";
 
 },{}]},{},[24]);

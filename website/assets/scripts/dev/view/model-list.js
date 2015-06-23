@@ -11,7 +11,7 @@ module.exports = Backbone.View.extend({
 	// $el - it's a cached jQuery object (el), in which you can use jQuery functions
 	//       to push content. Like the Hello World in this case.
 	render: function(){
-		this.$el.empty();
+		//this.$el.empty();
 		var models = this.collection;
 		this.$el.append(
 			$(

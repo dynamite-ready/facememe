@@ -1,34 +1,34 @@
 module.exports = [
 	{
-		"id": 1,
+		"id": "jessica-burley",
 		"firstname": "Jessica",
 		"surname": "Burley",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/jessica-burley.jpg"
 	},
 	{
-		"id": 2,
+		"id": "kai-newman",
 		"firstname": "Kai",
 		"surname": "Newman",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/kai-newman.jpg"
 	},
 	{
-		"id": 3,
+		"id": "kate-moss",
 		"firstname": "Kate",
 		"surname": "Moss",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/kate-moss.jpg"
 	},
 	{
-		"id": 4,
+		"id": "lana-godnia",
 		"firstname": "Lana",
 		"surname": "Godnia",
 		"sex": "female",
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/lana-godnia.jpg"
 	},
 	{
-		"id": 5,
+		"id": "laura-julie",
 		"firstname": "Laura",
 		"surname": "Julie",
 		"sex": "female",
