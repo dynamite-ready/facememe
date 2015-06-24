@@ -4,7 +4,7 @@ Facememe is a prototypal, mobile/desktop based facial recognition web applicatio
 
 Using your device and it's webcam you can choose to either take a live picture of yourself, or upload an existing portrait to the application, and compare your face against others to see just how similar you look (protip - the current "database" contains pictures of supermodels).
 
-Webcam support currently only works on both desktop and mobile versions of Chrome, but standard uploads should work on all the latest browsers.##
+Webcam support currently only works on both desktop and mobile versions of Chrome, but standard uploads should work on all the latest browsers.
 
 You can test the program here: http://goo.gl/ClQs5i
 
