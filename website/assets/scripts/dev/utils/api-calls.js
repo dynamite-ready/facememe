@@ -42,7 +42,7 @@ module.exports = {
 				"image": imageData.replace("data:image/jpeg;base64,", ""), 
 				"gallery_name": "supermodels",
 				"selector": "SETPOSE",
-				"threshold": 0.6
+				"threshold": 0.45
 			}),
 			complete: function(data){ if(callback) callback(data); }	
 		});

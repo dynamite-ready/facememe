@@ -1,17 +1,15 @@
-var enrollFace = require("../utils").enrollFace;
+var enrollFace = require("../utils/api-calls").enrollFace;
 
 module.exports = Backbone.Model.extend({
-	url: "https://api.kairos.com/enroll",
-	
 	defaults: {
 		"id": null,	
 		"firstname": null,
 		"surname": null,
 		"sex": null,
-		"image": null,
-		"enrolled": null // Is this model (hoho!) registered on the server?...
+		"image": null
+		// "enrolled": null // Is this model (hoho!) registered on the server?...
 	},
-	
+	/*
 	initialize: function(){
 		if(!this.get("enrolled")){
 			var _self = this;
@@ -23,4 +21,5 @@ module.exports = Backbone.Model.extend({
 			});
 		}
 	}
+	*/
 });

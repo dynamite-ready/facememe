@@ -8,7 +8,7 @@ h1 {
 	font-size: 50px;
 	line-height: 50px;
 	margin: 0px;
-	margin-top: 5px;
+	margin-top: 10px;
 	font-weight: normal;
 }
 
@@ -23,11 +23,13 @@ h1 {
 	height: 30px;
 	border: 1px solid #999999;
 	overflow: visible !important;
+	cursor: pointer;
 }
 
 .button span {
 	position: relative;
 	top: 5px;
+	cursor: pointer;
 }
 
 #user-image-frame, #models .image {

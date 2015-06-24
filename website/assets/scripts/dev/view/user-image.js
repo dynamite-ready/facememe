@@ -1,5 +1,6 @@
 var filebutton = require("file-button");
 var DisplayModelTemplate = require("../../../templates/user-image.html");
+// var launchFullscreen = require("../utils/fullscreen-shim.js");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
@@ -22,7 +23,7 @@ module.exports = Backbone.View.extend({
 		this.$el.find(".button.snapshot").addClass("hide");
 		this.$el.find("#loading").fadeOut();
 		
-		document.documentElement.requestFullscreen();
+		// launchFullscreen(document.documentElement);
 	},
 	
 	setupFileUploadButton: function(){
@@ -83,13 +84,38 @@ module.exports = Backbone.View.extend({
 	displayFinalImage: function(image){
 		var _self = this;
 		
-		// Image should be a base64 encode image.
+		// Image should be a base64 encoded image.
 		this.$el.find("#video-preview, #actions .button").addClass("hide");
 		this.$el.find("#upload-preview").removeClass("hide");
 		this.$el.find("#upload-preview").attr("src", image);
 		
+		// Wait for a while...
 		window.setTimeout(function(){
 			_self.$el.find("#loading").fadeIn();
+			console.log(image, _self.model);
+			_self.model.set("image", image);
+			_self.model.process();
+			_self.model.on("comparison-complete", function(){
+				var result = JSON.parse(this.get("result"));
+				
+				if(result.Errors){
+					// If there's no match, present a polite message and reset the application.
+					$("#loading h1").text("No Match Found");
+					$("#loading span").text("Sorry");
+					window.setTimeout(function(){
+						window.location = "/";
+					}, 3000);
+				} else {
+					_self.model.set("result", result);
+					_self.model.set("result-id", result["images"][0]["transaction"]["subject"]);
+					_self.$el.find("#loading").fadeOut();
+					router.navigate("compare/" + result["images"][0]["transaction"]["subject"], {trigger: true});
+				}
+			})
 		}, 3000);
+	},
+	
+	close: function(){
+		this.$el.empty();
 	}
 });

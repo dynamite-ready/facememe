@@ -17,11 +17,9 @@ module.exports = Backbone.View.extend({
 				)
 			)
 		);
-		
-		console.log(this);
-		
-		$("html, body").animate({
-            scrollTop: Number(($("#" + (this.model.get("result-id"))).offset().top) + 10) + "px"
-        }, 2000);
-	}
+	},
+	
+	close: function(){
+		this.remove();
+	}	
 });

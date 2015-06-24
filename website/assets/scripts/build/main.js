@@ -14430,7 +14430,7 @@ module.exports = Backbone.Collection.extend({
 	model: ProfileModel,
 	localStorage: new Backbone.LocalStorage("profile-models")
 });
-},{"../model/catwalk-model-profile.js":25}],23:[function(require,module,exports){
+},{"../model/catwalk-model-profile.js":26}],23:[function(require,module,exports){
 module.exports = [
 	{
 		"id": "jessica-burley",
@@ -14479,72 +14479,51 @@ global.Backbone = require("backbone");
 global.Backbone.LocalStorage = require("backbone.localstorage");
 global.Backbone.$ = $;
 
+
 // App initialisation. If something is broken, start here.
-function main(){
-	// App specific.
+function main(){ 
 	var Router = require("./router/index.js");
-	var ModelList = require("./view/model-list.js");
-	var UserImage = require("./view/user-image.js");
-	var ModelProfiles = require("./collection/catwalk-model-profiles.js");
 	
-	// Mock data... Would ideally like to put this in a database.
-	var data = require("./data/catwalk-model-profile-data.js");
-	
-	// Keep track of what's been loaded so far.
-	var dataItemCount = 0;
-	
-	// Initialise router.
-	var router = new Router();
-	Backbone.history.start();	
-	
-	// Initialise the Catwalk Model Profile collection.
-	var modelProfiles = new ModelProfiles();
-	
-	// Attempt to retrieve the collection from cache.
-	modelProfiles.fetch();
-
-	if(modelProfiles.length == data.length){
-		displayHomepage();
-	} else {
-		// If I've added or deleted an item from mock data, or the collection was originally empty, create a fresh collection
-		_.each(data, function(item){
-			dataItemCount++;
-			modelProfiles.create(item);
-			
-			if(dataItemCount == data.length) displayHomepage();
-		});
-	}
-
-	function displayHomepage(){
-		// Homepage components.
-		var displayModelList = new ModelList({collection: modelProfiles});
-		var displayUserImage = new UserImage({collection: modelProfiles});
-		
-		var detectFace = require("./utils").detectFace;
-	}
-	
-
+	// Want the router to be available globally.
+	global.router = new Router();
+	Backbone.history.start(); 
 }
 
-	// Initialise on document ready.
+// Initialise on document ready.
 $(document).on("ready", main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./collection/catwalk-model-profiles.js":22,"./data/catwalk-model-profile-data.js":23,"./router/index.js":26,"./utils":27,"./view/model-list.js":28,"./view/user-image.js":29,"backbone":2,"backbone.localstorage":1,"jquery":9,"mustache":10,"underscore":11}],25:[function(require,module,exports){
-var enrollFace = require("../utils").enrollFace;
+},{"./router/index.js":27,"backbone":2,"backbone.localstorage":1,"jquery":9,"mustache":10,"underscore":11}],25:[function(require,module,exports){
+var recognizeFaces = require("../utils/api-calls").recognizeFaces;
 
 module.exports = Backbone.Model.extend({
-	url: "https://api.kairos.com/enroll",
+	defaults: {
+		"result": null,
+		"result-id": null,
+		"image": null
+	},
 	
+	process: function(){		
+		var _self = this;
+		recognizeFaces(this.get("image"), function(data){
+			_self.set("result", data.responseText);
+			_self.trigger("comparison-complete");
+		});
+	}
+});
+},{"../utils/api-calls":28}],26:[function(require,module,exports){
+var enrollFace = require("../utils/api-calls").enrollFace;
+
+module.exports = Backbone.Model.extend({
 	defaults: {
 		"id": null,	
 		"firstname": null,
 		"surname": null,
 		"sex": null,
-		"image": null,
-		"enrolled": null // Is this model (hoho!) registered on the server?...
+		"image": null
+		// "enrolled": null // Is this model (hoho!) registered on the server?...
 	},
-	
+	/*
 	initialize: function(){
 		if(!this.get("enrolled")){
 			var _self = this;
@@ -14556,29 +14535,65 @@ module.exports = Backbone.Model.extend({
 			});
 		}
 	}
+	*/
 });
-},{"../utils":27}],26:[function(require,module,exports){
+},{"../utils/api-calls":28}],27:[function(require,module,exports){
+(function (global){
+var ModelList = require("../view/model-list.js");
+var UserImage = require("../view/user-image.js");
+var ModelProfiles = require("../collection/catwalk-model-profiles.js");
+var ModelComparison = require("../model/catwalk-model-comparison.js");
+
+// This needs to be available across both views.
+global.modelComparison = new ModelComparison();
+
+// Mock data... Would ideally like to put this in a database.
+var data = require("../data/catwalk-model-profile-data.js");
+
 module.exports = Backbone.Router.extend({
 	routes: {
-		"": "default",
-		"wodge" : "wodge",
-		"badger" : "badger"
+		"": "home",
+		"compare/:id" : "compare"
 	},
 	
-	default: function(){
-		alert("ARGH!");
+	home: function(){
+		/*
+		var dataItemCount = 0;
+		
+		if(modelProfiles.length == data.length){
+			displayHomepage();
+		} else {
+			// If I've added or deleted an item from mock data, or the collection was originally empty, create a fresh collection.
+			_.each(data, function(item){
+				dataItemCount++;
+				modelProfiles.create(item);
+				
+				if(dataItemCount == data.length) displayHomepage();
+			});
+		}
+		*/
+		//function displayHomepage(){
+			// Homepage components.
+			$("#models, #user-image").remove();
+			var displayUserImage = new UserImage({model: modelComparison});
+		//}
 	},
 	
-	badger: function(params) {
-		console.log("BADGER", params);
-	},
-	
-	wodge: function(params){
-		console.log("WODGE", params);
+	compare: function(id){
+		console.log("NOW TO RENDER THE MODEL COMPARISON VIEW...", id, modelComparison.get("result"));
+		// Initialise the Catwalk Model Profile collection.
+		var modelProfiles = new ModelProfiles();
+		modelProfiles.fetch();
+		
+		var displayModelList = new ModelList({
+			collection: modelProfiles,
+			model: modelComparison
+		});
 	}
 });
 
-},{}],27:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../collection/catwalk-model-profiles.js":22,"../data/catwalk-model-profile-data.js":23,"../model/catwalk-model-comparison.js":25,"../view/model-list.js":29,"../view/user-image.js":30}],28:[function(require,module,exports){
 var kairosXhrOptions = {
 	method: "post",
 	contentType: "application/json",
@@ -14623,7 +14638,7 @@ module.exports = {
 				"image": imageData.replace("data:image/jpeg;base64,", ""), 
 				"gallery_name": "supermodels",
 				"selector": "SETPOSE",
-				"threshold": 0.6
+				"threshold": 0.45
 			}),
 			complete: function(data){ if(callback) callback(data); }	
 		});
@@ -14631,35 +14646,38 @@ module.exports = {
 		$.ajax("https://api.kairos.com/recognize", requestOptions);
 	}
 }
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var DisplayModelTemplate = require("../../../templates/model-list.html");
 
 module.exports = Backbone.View.extend({
-	// Expect:
-	// this.modelProfiles.
 	el: '#container',
-	// It's the first function called when this view it's instantiated.
+	
 	initialize: function(){
 		this.render();
 	},
-	// $el - it's a cached jQuery object (el), in which you can use jQuery functions
-	//       to push content. Like the Hello World in this case.
+	
 	render: function(){
-		//this.$el.empty();
 		var models = this.collection;
 		this.$el.append(
 			$(
 				Mustache.render(
 					DisplayModelTemplate, 
-					{models: models.toJSON()}
+					{ models: models.toJSON() }
 				)
 			)
 		);
+		
+		console.log(this);
+		
+		$("html, body").animate({
+            scrollTop: Number(($("#" + (this.model.get("result-id"))).offset().top) + 10) + "px"
+        }, 2000);
 	}
 });
-},{"../../../templates/model-list.html":30}],29:[function(require,module,exports){
+},{"../../../templates/model-list.html":31}],30:[function(require,module,exports){
 var filebutton = require("file-button");
 var DisplayModelTemplate = require("../../../templates/user-image.html");
+// var launchFullscreen = require("../utils/fullscreen-shim.js");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
@@ -14682,7 +14700,7 @@ module.exports = Backbone.View.extend({
 		this.$el.find(".button.snapshot").addClass("hide");
 		this.$el.find("#loading").fadeOut();
 		
-		document.documentElement.requestFullscreen();
+		// launchFullscreen(document.documentElement);
 	},
 	
 	setupFileUploadButton: function(){
@@ -14743,20 +14761,45 @@ module.exports = Backbone.View.extend({
 	displayFinalImage: function(image){
 		var _self = this;
 		
-		// Image should be a base64 encode image.
+		// Image should be a base64 encoded image.
 		this.$el.find("#video-preview, #actions .button").addClass("hide");
 		this.$el.find("#upload-preview").removeClass("hide");
 		this.$el.find("#upload-preview").attr("src", image);
 		
+		// Wait for a while...
 		window.setTimeout(function(){
 			_self.$el.find("#loading").fadeIn();
+			console.log(image, _self.model);
+			_self.model.set("image", image);
+			_self.model.process();
+			_self.model.on("comparison-complete", function(){
+				var result = JSON.parse(this.get("result"));
+				
+				if(result.Errors){
+					// If there's no match, present a polite message and reset the application.
+					$("#loading h1").text("No Match Found");
+					$("#loading span").text("Sorry");
+					window.setTimeout(function(){
+						window.location = "/";
+					}, 3000);
+				} else {
+					_self.model.set("result", result);
+					_self.model.set("result-id", result["images"][0]["transaction"]["subject"]);
+					_self.$el.find("#loading").fadeOut();
+					router.navigate("compare/" + result["images"][0]["transaction"]["subject"], {trigger: true});
+				}
+			})
 		}, 3000);
+	},
+	
+	close: function(){
+		this.$el.empty();
 	}
 });
-},{"../../../templates/user-image.html":31,"file-button":4,"webrtc2images":12}],30:[function(require,module,exports){
+},{"../../../templates/user-image.html":32,"file-button":4,"webrtc2images":12}],31:[function(require,module,exports){
 module.exports = "<div id=\"models\">\r\n\t{{#models}}\r\n\t<div class=\"model\" id=\"{{&id}}\">\r\n\t\t<img class=\"image\" src=\"{{&image}}\"></img>\r\n\t\t<div class=\"name\">{{&firstname}} {{&surname}}</div>\r\n\t</div>\r\n\t{{/models}}\r\n</div>";
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports = "<div id=\"user-image\">\r\n\t<div id=\"user-image-frame\">\r\n\t\t<div id=\"video-preview\"></div>\r\n\t\t<img id=\"upload-preview\" src=\"https://placeholdit.imgix.net/~text?txtsize=34&txt=320%C3%97400&w=320&h=400\"></img>\r\n\t</div>\r\n\t<div id=\"actions\">\r\n\t\t<span class=\"snapshot button\"><span>snapshot</span></span>\r\n\t\t&nbsp;\r\n\t\t<span id=\"button\" class=\"upload button\"><span>upload</span></span>\r\n\t</div>\r\n</div>";
 
 },{}]},{},[24]);
