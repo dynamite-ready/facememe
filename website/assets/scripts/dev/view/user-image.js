@@ -1,6 +1,5 @@
 var filebutton = require("file-button");
 var DisplayModelTemplate = require("../../../templates/user-image.html");
-// var launchFullscreen = require("../utils/fullscreen-shim.js");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
@@ -22,8 +21,6 @@ module.exports = Backbone.View.extend({
 		
 		this.$el.find(".button.snapshot").addClass("hide");
 		this.$el.find("#loading").fadeOut();
-		
-		// launchFullscreen(document.documentElement);
 	},
 	
 	setupFileUploadButton: function(){

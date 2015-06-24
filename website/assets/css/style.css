@@ -4,6 +4,10 @@ body {
 	overflow: hidden;
 } 
 
+body.add-scrollbar {
+	overflow: auto;
+}
+
 h1 {
 	font-size: 50px;
 	line-height: 50px;
@@ -12,11 +16,17 @@ h1 {
 	font-weight: normal;
 }
 
+
+.name { 
+	font-family: arial;
+}
+
 .hide {
 	display: none !important;
 }
 
 .button {
+	font-family: verdana;
 	position: relative;
 	display: inline-block;
 	width: 100px;
@@ -24,6 +34,16 @@ h1 {
 	border: 1px solid #999999;
 	overflow: visible !important;
 	cursor: pointer;
+}
+
+.match {
+	background-color: #EEEEEE;
+	padding: 10px 0px;
+}
+
+.percent {
+	font-weight: bold;
+	color: red;
 }
 
 .button span {

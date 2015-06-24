@@ -14461,12 +14461,61 @@ module.exports = [
 		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/lana-godnia.jpg"
 	},
 	{
-		"id": "laura-julie",
-		"firstname": "Laura",
-		"surname": "Julie",
+		"id": "luping-wang",
+		"firstname": "Luping",
+		"surname": "Wang",
 		"sex": "female",
-		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/laura-julie.jpg"
-	}
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/luping-wang.jpg"
+	},
+	{
+		"id": "malaika-firth",
+		"firstname": "Malaika",
+		"surname": "Firth",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/malaika-firth.jpg"
+	},
+	{
+		"id": "matilda-lowther",
+		"firstname": "Matilda",
+		"surname": "Lowther",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/matilda-lowther.jpg"
+	},
+	{
+		"id": "sophia-ahrens",
+		"firstname": "Sophia",
+		"surname": "Ahrens",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/sophia-ahrens.jpg"
+	},
+	{
+		"id": "sophia-skloss",
+		"firstname": "Sophia",
+		"surname": "Skloss",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/sophia-skloss.jpg"
+	},
+	{
+		"id": "waleska-gorczevski",
+		"firstname": "Waleska",
+		"surname": "Gorczevski",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/waleska-gorczevski.jpg"
+	},
+	{
+		"id": "ysuanny-brito",
+		"firstname": "Ysuanny",
+		"surname": "brito",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/ysuanny-brito.jpg"
+	},
+	{
+		"id": "zlata-semenko",
+		"firstname": "Zlata",
+		"surname": "Semenko",
+		"sex": "female",
+		"image": "http://i121.photobucket.com/albums/o216/dynamite-ready/zlata-semenko.jpg"
+	}	
 ];
 },{}],24:[function(require,module,exports){
 (function (global){
@@ -14512,8 +14561,6 @@ module.exports = Backbone.Model.extend({
 	}
 });
 },{"../utils/api-calls":28}],26:[function(require,module,exports){
-var enrollFace = require("../utils/api-calls").enrollFace;
-
 module.exports = Backbone.Model.extend({
 	defaults: {
 		"id": null,	
@@ -14521,23 +14568,9 @@ module.exports = Backbone.Model.extend({
 		"surname": null,
 		"sex": null,
 		"image": null
-		// "enrolled": null // Is this model (hoho!) registered on the server?...
-	},
-	/*
-	initialize: function(){
-		if(!this.get("enrolled")){
-			var _self = this;
-			enrollFace(this.get("image"), this.get("id"), function(data){
-				// To ensure that we don't push the image to the server for registration again.
-				// Unfortunately, there's a bug in Backbone.localStorage on all browsers but Chrome.
-				_self.set("enrolled", data.responseText);
-				_self.save();
-			});
-		}
 	}
-	*/
 });
-},{"../utils/api-calls":28}],27:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function (global){
 var ModelList = require("../view/model-list.js");
 var UserImage = require("../view/user-image.js");
@@ -14547,9 +14580,6 @@ var ModelComparison = require("../model/catwalk-model-comparison.js");
 // This needs to be available across both views.
 global.modelComparison = new ModelComparison();
 
-// Mock data... Would ideally like to put this in a database.
-var data = require("../data/catwalk-model-profile-data.js");
-
 module.exports = Backbone.Router.extend({
 	routes: {
 		"": "home",
@@ -14557,38 +14587,34 @@ module.exports = Backbone.Router.extend({
 	},
 	
 	home: function(){
-		/*
+		$("#models, #user-image").remove();
+		var displayUserImage = new UserImage({model: modelComparison});
+	},
+	
+	compare: function(id){
+		// Initialise the Catwalk Model Profile collection.
 		var dataItemCount = 0;
+		var modelProfiles = new ModelProfiles();
+		var data = require("../data/catwalk-model-profile-data.js");
 		
+		modelProfiles.fetch();
 		if(modelProfiles.length == data.length){
-			displayHomepage();
+			displayModelList();
 		} else {
-			// If I've added or deleted an item from mock data, or the collection was originally empty, create a fresh collection.
 			_.each(data, function(item){
 				dataItemCount++;
 				modelProfiles.create(item);
 				
-				if(dataItemCount == data.length) displayHomepage();
+				if(dataItemCount == data.length) displayModelList();
+			});			
+		}
+		
+		function displayModelList(){
+			var displayModelList = new ModelList({
+				collection: modelProfiles,
+				model: modelComparison
 			});
 		}
-		*/
-		//function displayHomepage(){
-			// Homepage components.
-			$("#models, #user-image").remove();
-			var displayUserImage = new UserImage({model: modelComparison});
-		//}
-	},
-	
-	compare: function(id){
-		console.log("NOW TO RENDER THE MODEL COMPARISON VIEW...", id, modelComparison.get("result"));
-		// Initialise the Catwalk Model Profile collection.
-		var modelProfiles = new ModelProfiles();
-		modelProfiles.fetch();
-		
-		var displayModelList = new ModelList({
-			collection: modelProfiles,
-			model: modelComparison
-		});
 	}
 });
 
@@ -14658,6 +14684,9 @@ module.exports = Backbone.View.extend({
 	
 	render: function(){
 		var models = this.collection;
+		
+		$("body").addClass("add-scrollbar");
+		
 		this.$el.append(
 			$(
 				Mustache.render(
@@ -14666,18 +14695,20 @@ module.exports = Backbone.View.extend({
 				)
 			)
 		);
-		
-		console.log(this);
+		var matchPercentage = Math.round((this.model.get("result")["images"][0]["transaction"]["confidence"]) * 100);
+		var $matchedElement = $("#" + (this.model.get("result-id")));
+		var matchedText = $matchedElement.find(".name").text();
+		$matchedElement.find(".name").addClass("match")
+		$matchedElement.find(".name").html(matchedText + ": <span class='percent'>" + matchPercentage + "%</span> " + "likeness... <a href='/'>reset?</a>");
 		
 		$("html, body").animate({
-            scrollTop: Number(($("#" + (this.model.get("result-id"))).offset().top) + 10) + "px"
+            scrollTop: Number(($matchedElement.offset().top) - 10) + "px"
         }, 2000);
 	}
 });
 },{"../../../templates/model-list.html":31}],30:[function(require,module,exports){
 var filebutton = require("file-button");
 var DisplayModelTemplate = require("../../../templates/user-image.html");
-// var launchFullscreen = require("../utils/fullscreen-shim.js");
 
 module.exports = Backbone.View.extend({
 	el: "#container",
@@ -14699,8 +14730,6 @@ module.exports = Backbone.View.extend({
 		
 		this.$el.find(".button.snapshot").addClass("hide");
 		this.$el.find("#loading").fadeOut();
-		
-		// launchFullscreen(document.documentElement);
 	},
 	
 	setupFileUploadButton: function(){
