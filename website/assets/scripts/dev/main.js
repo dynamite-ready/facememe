@@ -7,7 +7,6 @@ global.Backbone = require("backbone");
 global.Backbone.LocalStorage = require("backbone.localstorage");
 global.Backbone.$ = $;
 
-
 // App initialisation. If something is broken, start here.
 function main(){ 
 	var Router = require("./router/index.js");

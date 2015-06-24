@@ -10,8 +10,6 @@ module.exports = Backbone.View.extend({
 	render: function(){
 		var models = this.collection;
 		
-		$("body").addClass("add-scrollbar");
-		
 		this.$el.append(
 			$(
 				Mustache.render(
@@ -20,6 +18,8 @@ module.exports = Backbone.View.extend({
 				)
 			)
 		);
+		
+		// We format the comparison result here,
 		var matchPercentage = Math.round((this.model.get("result")["images"][0]["transaction"]["confidence"]) * 100);
 		var $matchedElement = $("#" + (this.model.get("result-id")));
 		var matchedText = $matchedElement.find(".name").text();

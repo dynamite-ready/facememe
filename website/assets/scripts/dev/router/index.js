@@ -13,17 +13,20 @@ module.exports = Backbone.Router.extend({
 	},
 	
 	home: function(){
+		// This view presents the image upload tools.
 		$("#models, #user-image").remove();
 		var displayUserImage = new UserImage({model: modelComparison});
 	},
 	
 	compare: function(id){
-		// Initialise the Catwalk Model Profile collection.
+		// This view  retrieves the list of models, and presents the result found in the 'ModelComparison' instance,
 		var dataItemCount = 0;
 		var modelProfiles = new ModelProfiles();
 		var data = require("../data/catwalk-model-profile-data.js");
 		
 		modelProfiles.fetch();
+		// I'm using backbone.localstorage to persist the list of Models.
+		// I only want to regenerate that list, if those items had not alread been stored.
 		if(modelProfiles.length == data.length){
 			displayModelList();
 		} else {

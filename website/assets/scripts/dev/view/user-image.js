@@ -1,6 +1,8 @@
-var filebutton = require("file-button");
+var Webrtc2images = require("webrtc2images"); // gtUserMedia library
+var filebutton = require("file-button"); // A quick AJAX file upload utility
 var DisplayModelTemplate = require("../../../templates/user-image.html");
 
+// This view handles the image capture and upload process.
 module.exports = Backbone.View.extend({
 	el: "#container",
 	
@@ -35,7 +37,6 @@ module.exports = Backbone.View.extend({
 	
 	setupCameraCapture: function(){
 		var _self = this;
-		var Webrtc2images = require("webrtc2images");
 		var rtc2images = new Webrtc2images({
 			width: 320,
 			height: 400,
@@ -71,6 +72,8 @@ module.exports = Backbone.View.extend({
 	},
 
 	uploadImage: function(_self, value){
+		// HTML5 allows for client side image upload previews.
+		// To do that, you need to use the HTML5 FileReader object to retrieve a base64 encoding of the upload.
 		var filereader = new FileReader();
 		filereader.readAsDataURL(value.files[0]);
 		filereader.onload = function(filereaderEvent){
@@ -79,6 +82,8 @@ module.exports = Backbone.View.extend({
 	},
 	
 	displayFinalImage: function(image){
+		// This method displays the image captured from either source, and kicks off the file upload process.
+		// It also handles API errors here.
 		var _self = this;
 		
 		// Image should be a base64 encoded image.
